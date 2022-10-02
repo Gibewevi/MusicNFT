@@ -2,12 +2,14 @@ import * as THREE from 'three';
 import { useEffect } from 'react';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { AmbientLight } from 'three';
+import GUI from 'lil-gui';
 
-console.log (OrbitControls);
 
 export default function Scene(){
 
     useEffect( () => {
+
 
     // Scene
     const scene = new THREE.Scene();
@@ -49,15 +51,14 @@ export default function Scene(){
 
         // Import blender GLTF
         const gltfLoader = new GLTFLoader();
-        const promote = [];
-        const promote_number = 5;
+        const promote_number = 4;
         const angle = ((2*Math.PI)/promote_number);
         const dh = 1.9;
-        const axeY = 1;
+        const axeY = 0.5;
 
-        for(let i=0;i<=promote_number;i++){
-
-            gltfLoader.load('/models/promote/promote.gltf',(gltf) => 
+        for(let i=0;i<promote_number;i++){
+            let data = i;
+            gltfLoader.load('/models/promote/promote_'+data+'.gltf',(gltf) => 
             {
             // Models
             gltf.scene.position.y = groupInstrument.position.y + axeY;
@@ -69,42 +70,29 @@ export default function Scene(){
             control.minPolarAngle = CONTROLS_MIN_MAX;
             control.maxPolarAngle = CONTROLS_MIN_MAX;
             control.rotateSpeed *= -0.2;
-            // controls.push(control);
+            controls.push(control); 
             groupPromote.add(gltf.scene);    
             })
-        }
-
-        // let Geometry = new THREE.PlaneGeometry(1,1,1);
-        // let Material = new THREE.MeshBasicMaterial( { color: "#EA41EA" }); 
-        // const planes = [];
-        // const planes_number = 4;
-        // const angle = ((2*Math.PI)/planes_number);
-        // const dh = 2;
-        // const axeY = 1;
-        // // Plane promote creation
-        // for (let i=0;i<=planes_number;i++){
-        //     let plane = new THREE.Mesh(Geometry, Material);
-        //     // Axe Z
-        //     plane.position.y = groupInstrument.position.y + axeY ;
-        //     // Axe X
-        //     plane.position.x = groupInstrument.position.x + dh * Math.sin(i*angle);
-        //     // Axe Y
-        //     plane.position.z = groupInstrument.position.z + dh * Math.cos(i*angle);
-        //     // Double side
-        //     plane.material.side = THREE.DoubleSide;
-        //     planes.push(plane);
-        //     groupPromote.add(plane);
-        //     console.log("i "+i);
-        //     console.log("planes numbers "+planes.length);
-        // }
-
+        }  
+            
         scene.add(groupPromote);
 
-        // light
-        const light = new THREE.AmbientLight( 0x404040,5); // soft white light
-        light.position.x = 5;
+    // light
+        // Ambiant
+        const light = new THREE.AmbientLight( 0x404040,15); // soft white light
         scene.add( light );
 
+        // Point
+        const pointLight = new THREE.PointLight('#FFFFFF', 1, 100);
+        pointLight.position.set(0,0,0);
+        scene.add( pointLight );
+
+    //GUI
+     const gui = new GUI();
+    gui.add(light, 'intensity').min(0).max(20).step(0.1);
+    gui.add(pointLight, 'intensity').min(0).max(100).step(0.1);
+    gui.add(pointLight, 'distance').min(0).max(100).step(0.1);
+    gui.add(pointLight, 'decay').min(0).max(100).step(0.1);
     // mouse
     const cursor = {
     x : 0,
@@ -136,17 +124,6 @@ export default function Scene(){
     renderer.setSize(sizes.width, sizes.height)
     renderer.render(scene, camera);
 
-    // const controls = [];
-    // const CONTROLS_MIN_MAX = (Math.PI/2)-0.32;
-    // for (let i=0;i<=planes_number;i++){
-    //       let control = new OrbitControls(planes[i], canvas);
-    //       control.enableDamping = true;
-    //       control.minPolarAngle = CONTROLS_MIN_MAX;
-    //       control.maxPolarAngle = CONTROLS_MIN_MAX;
-    //       control.rotateSpeed *= -0.2;
-    //       controls.push(control);
-    // }
-
     // Update    
     const clock = new THREE.Clock();
 
@@ -157,10 +134,9 @@ export default function Scene(){
         groupInstrument.rotation.y = elapsedTime * 0.05;
         
         // Update controls
-        // for (let i=0;i<=planes_number;i++){
-        //     controls[i].update();
-        // }
-
+        for (let i=0;i<controls.length;i++){
+            controls[i].update();
+        }
         renderer.render(scene, camera);
         window.requestAnimationFrame(tick);
     }
