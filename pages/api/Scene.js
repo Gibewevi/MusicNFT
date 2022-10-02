@@ -1,32 +1,37 @@
 import * as THREE from 'three';
 import { useEffect } from 'react';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+
+console.log (OrbitControls);
+
 export default function Scene(){
 
     useEffect( () => {
 
     // Scene
     const scene = new THREE.Scene();
-    const group = new THREE.Group();
-    const promote = new THREE.Group();
+    const groupInstrument = new THREE.Group();
+    const groupPromote = new THREE.Group();
 
     // Object
         // Cube
         const cubeGeometry = new THREE.BoxGeometry(1,1,1);
         const cubeMaterial = new THREE.MeshBasicMaterial( {color: 0xff0000 });
         const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
-        group.add(cube);
+        groupInstrument.add(cube);
 
         // Sol
         const circleGeometry = new THREE.CircleGeometry(5,32);
         const circleMaterial = new THREE.MeshBasicMaterial( {color: "#24B8FE" });
         const circle = new THREE.Mesh( circleGeometry, circleMaterial);
         circle.material.side = THREE.DoubleSide;
-        circle.scale.set(0.25,0.25,0.25)
+        circle.scale.set(0.22,0.22,0.22)
         circle.rotation.x = (1.57);
         circle.position.y = -0.5
-        group.add(circle);
-        group.rotation.y = 0.6;
-        scene.add(group);
+        groupInstrument.add(circle);
+    groupInstrument.position.y = -0.2;
+        scene.add(groupInstrument);
 
 
         function getCenterPoint(mesh) {
@@ -38,20 +43,79 @@ export default function Scene(){
             return center;
         }
 
-    // Promote
-    let i = 0;
-    const angle = 2.4;
-        let planeGeometry = new THREE.PlaneGeometry(1,1,1);
-        let planeMaterial = new THREE.MeshBasicMaterial( { color: 0xff0000 });
-        let plane = new THREE.Mesh( planeGeometry, planeMaterial);
-        plane.position.x = group.position.x ;
-        plane.position.y = group.position.y +0.5;
-        plane.rotation.y = 2;
-        plane.material.side = THREE.DoubleSide;
+        //controls
+        const controls = [];
+        const CONTROLS_MIN_MAX = (Math.PI/2)-0.32;
 
+        // Import blender GLTF
+        const gltfLoader = new GLTFLoader();
+        const promote = [];
+        const promote_number = 5;
+        const angle = ((2*Math.PI)/promote_number);
+        const dh = 1.9;
+        const axeY = 1;
 
-        
-    scene.add(plane);
+        for(let i=0;i<=promote_number;i++){
+
+            gltfLoader.load('/models/promote/promote.gltf',(gltf) => 
+            {
+            // Models
+            gltf.scene.position.y = groupInstrument.position.y + axeY;
+            gltf.scene.position.x = groupInstrument.position.x + dh * Math.sin(i*angle);
+            gltf.scene.position.z =  groupInstrument.position.z + dh * Math.cos(i*angle);
+            // Camera OrbitControl
+            let control = new OrbitControls(gltf.scene, canvas);
+            control.enableDamping = true;
+            control.minPolarAngle = CONTROLS_MIN_MAX;
+            control.maxPolarAngle = CONTROLS_MIN_MAX;
+            control.rotateSpeed *= -0.2;
+            // controls.push(control);
+            groupPromote.add(gltf.scene);    
+            })
+        }
+
+        // let Geometry = new THREE.PlaneGeometry(1,1,1);
+        // let Material = new THREE.MeshBasicMaterial( { color: "#EA41EA" }); 
+        // const planes = [];
+        // const planes_number = 4;
+        // const angle = ((2*Math.PI)/planes_number);
+        // const dh = 2;
+        // const axeY = 1;
+        // // Plane promote creation
+        // for (let i=0;i<=planes_number;i++){
+        //     let plane = new THREE.Mesh(Geometry, Material);
+        //     // Axe Z
+        //     plane.position.y = groupInstrument.position.y + axeY ;
+        //     // Axe X
+        //     plane.position.x = groupInstrument.position.x + dh * Math.sin(i*angle);
+        //     // Axe Y
+        //     plane.position.z = groupInstrument.position.z + dh * Math.cos(i*angle);
+        //     // Double side
+        //     plane.material.side = THREE.DoubleSide;
+        //     planes.push(plane);
+        //     groupPromote.add(plane);
+        //     console.log("i "+i);
+        //     console.log("planes numbers "+planes.length);
+        // }
+
+        scene.add(groupPromote);
+
+        // light
+        const light = new THREE.AmbientLight( 0x404040,5); // soft white light
+        light.position.x = 5;
+        scene.add( light );
+
+    // mouse
+    const cursor = {
+    x : 0,
+    y : 0
+    }
+
+    window.addEventListener('mousemove', (event) => 
+    {
+        cursor.x = event.clientX / sizes.width - 0.5;
+        cursor.y = event.clientY / sizes.height - 0.5;
+    })
 
     // Camera
     const sizes = {
@@ -72,6 +136,17 @@ export default function Scene(){
     renderer.setSize(sizes.width, sizes.height)
     renderer.render(scene, camera);
 
+    // const controls = [];
+    // const CONTROLS_MIN_MAX = (Math.PI/2)-0.32;
+    // for (let i=0;i<=planes_number;i++){
+    //       let control = new OrbitControls(planes[i], canvas);
+    //       control.enableDamping = true;
+    //       control.minPolarAngle = CONTROLS_MIN_MAX;
+    //       control.maxPolarAngle = CONTROLS_MIN_MAX;
+    //       control.rotateSpeed *= -0.2;
+    //       controls.push(control);
+    // }
+
     // Update    
     const clock = new THREE.Clock();
 
@@ -79,11 +154,13 @@ export default function Scene(){
         const elapsedTime = clock.getElapsedTime();
 
         // Update rotation group
-        group.rotation.y = elapsedTime * 0.05;
-        plane.position.z = (Math.cos(elapsedTime) *2);
-        plane.position.x = (Math.sin(elapsedTime) *2);
-        plane.lookAt(0,0,0)
+        groupInstrument.rotation.y = elapsedTime * 0.05;
         
+        // Update controls
+        // for (let i=0;i<=planes_number;i++){
+        //     controls[i].update();
+        // }
+
         renderer.render(scene, camera);
         window.requestAnimationFrame(tick);
     }
