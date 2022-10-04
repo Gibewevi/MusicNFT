@@ -132,7 +132,7 @@ export default function Scene(){
     // Render
     const canvas = document.querySelector('.webgl');
     const renderer = new THREE.WebGLRenderer({
-        canvas
+        canvas, alpha:true
     });
     renderer.setSize(sizes.width, sizes.height)
     renderer.render(scene, camera);
