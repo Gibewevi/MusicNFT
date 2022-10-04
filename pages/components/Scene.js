@@ -5,7 +5,6 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { AmbientLight } from 'three';
 import GUI from 'lil-gui';
 
-
 export default function Scene(){
 
     useEffect( () => {
@@ -32,7 +31,7 @@ export default function Scene(){
         circle.rotation.x = (1.57);
         circle.position.y = -0.5
         groupInstrument.add(circle);
-    groupInstrument.position.y = -0.2;
+        groupInstrument.position.y = -0.2;
         scene.add(groupInstrument);
 
 
@@ -88,11 +87,11 @@ export default function Scene(){
         scene.add( pointLight );
 
     //GUI
-     const gui = new GUI();
-    gui.add(light, 'intensity').min(0).max(20).step(0.1);
-    gui.add(pointLight, 'intensity').min(0).max(100).step(0.1);
-    gui.add(pointLight, 'distance').min(0).max(100).step(0.1);
-    gui.add(pointLight, 'decay').min(0).max(100).step(0.1);
+    //  const gui = new GUI();
+    // gui.add(light, 'intensity').min(0).max(20).step(0.1);
+    // gui.add(pointLight, 'intensity').min(0).max(100).step(0.1);
+    // gui.add(pointLight, 'distance').min(0).max(100).step(0.1);
+    // gui.add(pointLight, 'decay').min(0).max(100).step(0.1);
     // mouse
     const cursor = {
     x : 0,
@@ -107,9 +106,23 @@ export default function Scene(){
 
     // Camera
     const sizes = {
-        width: 800,
-        height: 600
+        width: window.innerWidth,
+        height: 800
     }
+
+    window.addEventListener('resize', () => {
+        // Update sizes
+        sizes.width =  window.innerWidth;
+        sizes.height = 800;
+
+        // Update Camera
+        camera.aspect = sizes.width / sizes.height;
+        camera.updateProjectionMatrix();
+
+        // Update renderer
+        renderer.setSize(sizes.width, sizes.height);
+    })
+
     const camera = new THREE.PerspectiveCamera(75,sizes.width / sizes.height);
     camera.position.z = 3;
     camera.position.y = 1;

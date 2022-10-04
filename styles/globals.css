@@ -1,3 +1,16 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+html,
+body
+{
+    overflow: hidden;
+}
+
+.webgl
+{
+    top: 0;
+    left: 0;
+    outline: none;
+}
